@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+source ./color_lib
+
+# This associative array is keyed by the name of the app to the name of the array
+# that stores a list of steps used to install that app.
+declare -A installer_steps
+# This associative array is keyed by the name of the installer that failed, with
+# the value being the step that failed.
+declare -A failed_installer
+
+# Register a step to be executed by an installer for a specific app.
+register_install_step() {
+	local app_name=$1
+	local cmd=$2
+
+	# We declare an array globally that stores each step for a specific app.
+	# Yes, this is as cursed as you think it is.
+	local steps="steps_${app_name}"
+	declare -g -a "$steps"
+
+	# Append the step into this global array, and store the name of the array
+	# in the associative array.
+	eval "$steps+=(\"\$cmd\")"
+	installer_steps["$app_name"]="$steps"
+}
+
+# Run a specified installer to completion, aborting that specific installer if
+# we encounter a failure.
+run_installer() {
+	local app_name=$1
+
+	# Access the global array that has the steps to install the app.
+	local step_array_name=${installer_steps[$app_name]}
+	declare -n steps="$step_array_name"
+
+	warn "installing $app_name."
+
+	local current_step=1
+	local total_steps="${#steps[@]}"
+
+	# Run each command, logging the results, and aborting if a single step fails.
+	local cmd
+	for cmd in "${steps[@]}"; do
+		info "[$app_name] [$current_step of $total_steps]: $cmd"
+
+		if ! eval "$cmd"; then
+			failed_installer["$app_name"]="$cmd"
+			error "This step evaluated to a non-zero exit code, aborting..."
+			return 1
+		fi
+
+		((current_step++))
+	done
+}
+
+# Run all registered installers to completion. If one installer fails, it will
+# continue to execute the others.
+run_all_installers() {
+	local installer_names=("${!installer_steps[@]}")
+
+	warn "running installers..."
+	local installer
+	for installer in "${installer_names[@]}"; do
+		run_installer "$installer"
+	done
+
+	echo ""
+
+	# If any installers failed, log them.
+	local failed_installs="${#failed_installer[@]}"
+	if [[ $failed_installs != 0 ]]; then
+		local current_failed_install=1
+
+		error "The following $failed_installs installers failed to execute:"
+		for failed_install_name in "${!failed_installer[@]}"; do
+			local failed_install_step=${failed_installer["$failed_install_name"]}
+
+			warn "[$current_failed_install] the '$failed_install_name' installer failed at the step: '$failed_install_step'"
+
+			((current_failed_install++))
+		done
+	else
+		info "Successfully installed all apps!"
+	fi
+}

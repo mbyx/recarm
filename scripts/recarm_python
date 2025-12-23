@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+source ./recarm_lib
+
+register_install_step "Python" "sudo apt update"
+register_install_step "Python" "sudo apt install -y python3 python3-venv python3-pip"
+
+# Runs only if this script is run directly.
+# If it is sourced, we only want to register the steps.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    run_installer "Python"
+fi

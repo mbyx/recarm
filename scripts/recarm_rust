@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+source ./recarm_lib
+
+register_install_step "Rust" \
+    "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+
+register_install_step "Rust" \
+    "source \"$HOME/.cargo/env\""
+
+
+# Runs only if this script is run directly.
+# If it is sourced, we only want to register the steps.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    run_installer "Rust"
+fi

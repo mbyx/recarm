@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+source ./recarm_lib
+source ./color_lib
+
+# Search for recarm scripts in the directory specified by $1 if given, otherwise
+# default to ./recarm_scripts.
+recarm_scripts_dir="./scripts"
+if [[ $# == 1 ]]; then
+    recarm_scripts_dir=$1
+fi
+
+# Find all files starting with recarm_ in the scripts directory.
+mapfile -t recarm_scripts < <(find "$recarm_scripts_dir" -type f | grep "recarm_*")
+
+number_of_scripts="${#recarm_scripts[@]}"
+
+# For each script, source it to register its installer, and run them all.
+warn "searching for recarm scripts in $recarm_scripts_dir..."
+for script_name in "${recarm_scripts[@]}"; do
+    info "found recarm script: $script_name"
+    source "$script_name"
+done
+warn "found $number_of_scripts scripts in total."
+echo ""
+
+run_all_installers
