@@ -3,6 +3,19 @@
 source ./recarm_lib
 source ./color_lib
 
+contains() {
+    local needle=$1
+
+    shift
+    local item
+    for item in "$@"; do
+        if [[ $item == "$needle" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 # Search for recarm scripts in the directory specified by $1 if given, otherwise
 # default to ./recarm_scripts.
 recarm_scripts_dir="./scripts"

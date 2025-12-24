@@ -59,9 +59,12 @@ run_installer() {
 run_all_installers() {
 	local installer_names=("${!installer_steps[@]}")
 
+	local sorted_installer_names
+	readarray -t sorted_installer_names < <(printf '%s\0' "${installer_names[@]}" | sort -zr | xargs -0n1)
+
 	warn "running installers..."
 	local installer
-	for installer in "${installer_names[@]}"; do
+	for installer in "${sorted_installer_names[@]}"; do
 		run_installer "$installer"
 	done
 

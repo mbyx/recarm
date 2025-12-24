@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+source ./recarm_lib
+
+register_install_step "__init__" "sudo apt install curl git fish -y"
+register_install_step "__init__" "git config --global user.name mbyx"
+
+# Runs only if this script is run directly.
+# If it is sourced, we only want to register the steps.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    run_installer "__init__"
+fi
