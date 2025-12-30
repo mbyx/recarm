@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 
-source ./recarm_lib
+# Allow passing in the path of the recarm_lib and color_lib files.
+SCRIPT_DIR="."
+if [[ -n $1 ]]; then
+    SCRIPT_DIR=$1
+fi
 
+cd "$SCRIPT_DIR" || exit
+source "recarm_lib"
+cd - || exit
+
+# We must first install a python version manager.
 register_install_step "Python" "curl https://pyenv.run | bash"
 register_install_step "Python" "export PYENV_ROOT=\"$HOME/.pyenv\""
 register_install_step "Python" "command -v pyenv >/dev/null || export PATH=\"$PYENV_ROOT/bin:$PATH\""
@@ -9,6 +18,9 @@ register_install_step "Python" "pyenv init"
 register_install_step "Python" "pyenv virtualenv-init"
 
 register_install_step "Python" "pyenv install 3:latest"
+
+# We must also install a python package manager.
+register_install_step "Python" "curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --yes"
 
 # Runs only if this script is run directly.
 # If it is sourced, we only want to register the steps.

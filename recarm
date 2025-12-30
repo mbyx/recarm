@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
 
+# TODO(recarm): add ability for installers to run before and after others.
+# For example, the fresh editor I use requires cargo to be available.
+
+# TODO(recarm): add automating testing via github actions.
+
 source ./recarm_lib
 source ./color_lib
 
-contains() {
-    local needle=$1
-
-    shift
-    local item
-    for item in "$@"; do
-        if [[ $item == "$needle" ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
 
 # Search for recarm scripts in the directory specified by $1 if given, otherwise
 # default to ./recarm_scripts.
@@ -32,7 +25,7 @@ number_of_scripts="${#recarm_scripts[@]}"
 warn "searching for recarm scripts in $recarm_scripts_dir..."
 for script_name in "${recarm_scripts[@]}"; do
     info "found recarm script: $script_name"
-    source "$script_name"
+    source "$script_name" .
 done
 warn "found $number_of_scripts scripts in total."
 echo ""

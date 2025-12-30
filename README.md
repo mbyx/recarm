@@ -20,7 +20,15 @@ To create your own scripts, follow the template:
 ```bash
 #!/usr/bin/env bash
 
-source ./recarm_lib
+# Allow passing in the path of the recarm_lib and color_lib files.
+SCRIPT_DIR="."
+if [[ -n $1 ]]; then
+    SCRIPT_DIR=$1
+fi
+
+cd "$SCRIPT_DIR" || exit
+source "recarm_lib"
+cd - || exit
 
 register_install_step "Installer_Name" "echo \"Step #1\""
 register_install_step "Installer_Name" "echo \"Step #2\""
@@ -32,5 +40,3 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     run_installer "Installer_Name"
 fi
 ```
-
-There is a known bug, that these scripts don't work on their own because of the use of relative paths everywhere.

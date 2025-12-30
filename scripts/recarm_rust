@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 
-source ./recarm_lib
+# Allow passing in the path of the recarm_lib and color_lib files.
+SCRIPT_DIR="."
+if [[ -n $1 ]]; then
+    SCRIPT_DIR=$1
+fi
+
+cd "$SCRIPT_DIR" || exit
+source "recarm_lib"
+cd - || exit
 
 register_install_step "Rust" \
     "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"

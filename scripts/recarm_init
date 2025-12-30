@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 
-source ./recarm_lib
+# Allow passing in the path of the recarm_lib and color_lib files.
+SCRIPT_DIR="."
+if [[ -n $1 ]]; then
+    SCRIPT_DIR=$1
+fi
 
-register_install_step "__init__" "sudo apt install curl git fish -y"
+cd "$SCRIPT_DIR" || exit
+source "recarm_lib"
+cd - || exit
+
+register_install_step "__init__" "sudo apt install curl git cmake fish gh -y"
 register_install_step "__init__" "git config --global user.name mbyx"
+register_install_step "__init__" "curl -sS https://starship.rs/install.sh | sh -s -- --yes"
 
 # Runs only if this script is run directly.
 # If it is sourced, we only want to register the steps.
