@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# Allow passing in the path of the recarm_lib and color_lib files.
 SCRIPT_DIR="."
 if [[ -n $1 ]]; then
     SCRIPT_DIR=$1
@@ -10,20 +9,27 @@ cd "$SCRIPT_DIR" || exit
 source "recarm_lib"
 cd - || exit
 
-# We must first install a python version manager.
-register_install_step "Python" "curl https://pyenv.run | bash"
-register_install_step "Python" "export PYENV_ROOT=\"$HOME/.pyenv\""
-register_install_step "Python" "command -v pyenv >/dev/null || export PATH=\"$PYENV_ROOT/bin:$PATH\""
-register_install_step "Python" "pyenv init"
-register_install_step "Python" "pyenv virtualenv-init"
+# Set PYENV_ROOT and PATH so pyenv is immediately available
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
 
+# Helper function to safely run commands and register them
+register_install_step "Python" "curl https://pyenv.run | bash"
+register_install_step "Python" "export PYENV_ROOT=\"$PYENV_ROOT\""
+register_install_step "Python" "export PATH=\"$PYENV_ROOT/bin:\$PATH\""
+register_install_step "Python" "eval \"\$(pyenv init -)\""
+register_install_step "Python" "eval \"\$(pyenv virtualenv-init -)\""
+
+# Actual Python installation
+register_install_step "Python" "sudo apt install -y make build-essential libssl-dev zlib1g-dev \
+libbz2-dev libreadline-dev libsqlite3-dev curl git \
+libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
 register_install_step "Python" "pyenv install 3:latest"
 
-# We must also install a python package manager.
+# Install package manager
 register_install_step "Python" "curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --yes"
 
-# Runs only if this script is run directly.
-# If it is sourced, we only want to register the steps.
+# Run installer if executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     run_installer "Python"
 fi
