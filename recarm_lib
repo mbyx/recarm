@@ -83,6 +83,7 @@ run_all_installers() {
 
 			((current_failed_install++))
 		done
+		return 1
 	else
 		info "Successfully installed all apps!"
 	fi

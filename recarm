@@ -30,4 +30,4 @@ done
 warn "found $number_of_scripts scripts in total."
 echo ""
 
-run_all_installers
+run_all_installers || exit 1
