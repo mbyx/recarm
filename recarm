@@ -8,9 +8,27 @@
 source ./recarm_lib
 source ./color_lib
 
+# --- Detect changed files to decide which installers to run ---
+installers_to_run=()
+if [[ -n "$GITHUB_EVENT_NAME" ]]; then
+    # In GitHub Actions
+    warn "Detected Github Actions environment."
+    git fetch origin main
+    changed_files=$(git diff --name-only origin/main...HEAD)
+else
+    # Local fallback
+    warn "Detected local environment."
+fi
 
-# Search for recarm scripts in the directory specified by $1 if given, otherwise
-# default to ./recarm_scripts.
+for f in $changed_files; do
+    if [[ $f == recarm_* ]]; then
+        installer_name=$(basename "$f")
+        installers_to_run+=("$installer_name")
+    fi
+done
+# -------------------------------------------------------------
+
+# Search for recarm scripts in the directory specified by $1 if given, otherwise default to ./scripts.
 recarm_scripts_dir="./scripts"
 if [[ $# == 1 ]]; then
     recarm_scripts_dir=$1
@@ -21,7 +39,7 @@ mapfile -t recarm_scripts < <(find "$recarm_scripts_dir" -type f | grep "recarm_
 
 number_of_scripts="${#recarm_scripts[@]}"
 
-# For each script, source it to register its installer, and run them all.
+# For each script, source it to register its installer.
 warn "searching for recarm scripts in $recarm_scripts_dir..."
 for script_name in "${recarm_scripts[@]}"; do
     info "found recarm script: $script_name"
@@ -30,4 +48,15 @@ done
 warn "found $number_of_scripts scripts in total."
 echo ""
 
-run_all_installers || exit 1
+# Execute installers selectively.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    if [[ ${#installers_to_run[@]} -eq 0 ]]; then
+        # No installer scripts changed, run all.
+        run_all_installers || exit 1
+    else
+        # Run only changed installers.
+        for inst in "${installers_to_run[@]}"; do
+            run_installer "$inst" || exit 1
+        done
+    fi
+fi
